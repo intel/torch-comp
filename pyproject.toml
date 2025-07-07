@@ -17,7 +17,9 @@ requires-python = ">=3.8"    # Python 版本兼容性[3,9](@ref)
 dependencies = [
     "torch",
     "pytest",
-    "ruamel.yaml"
+    "ruamel.yaml",
+    "pre-commit",
+    "flake8"
 ]
 
 

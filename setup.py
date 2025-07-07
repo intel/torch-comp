@@ -8,6 +8,6 @@ setup(
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     install_requires=["torch", "ruamel.yaml", "pytest"],
-    package_data={"": ["*"]},
+    package_data={"torch_comp": ["yaml/*.yaml"]},
     include_package_data=True,
 )

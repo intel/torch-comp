@@ -9,20 +9,21 @@ https://static.sched.com/hosted_files/pytorchdaychina2025/c0/ETS_PyTorchDay25_Ch
 ```python
 def compatible_mode(target_device="xpu", dist_backend="ccl", compile_backend="inductor"):
 ```
-* target_device: target device where should be converted from CUDA, currently only support XPU device type within IPEX.
+* target_device: target device where should be converted from CUDA, currently only support Intel XPU device type.
 * dist_backend: target distribution backend where should be adopted on the target device, currently only support ccl backend
 * compile_backend: target backend for torch.compile path, default is inductor
 
-# Usage 
+# install
+pip install .
+
+# Usage
 * Only single line is needed to add into model script, as following,
 ```python
 import torch
-import intel_extension_for_pytorch as ipex
- 
-ipex.compatible_mode(...)
+import torch_comp;torch_comp.compatible_mode(...)
 ```
-* Please be noticed, the ipex.compatible_mode(...) must be invoked 
+* Please be noticed, the torch_comp.compatible_mode(...) must be invoked
     - at the very beginning of the workload.
     - only once on the global scale of the workload.
-    - immediately after import the torch and IPEX.
+    - immediately after import the torch and torch_comp.
 * With above, run model script as usual without other changes in model script. The workload will run on XPU device along with original CUDA path.

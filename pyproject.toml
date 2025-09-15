@@ -23,7 +23,8 @@ dependencies = [
 ]
 
 
-[tool.flake8]
-max-line-length = 88
+[flake8]
+ignore = ["E501", "E265", "C901"]
+max-line-length = 120
 max-complexity = 10
 exclude = [".venv", "__pycache__", "build", "dist"]

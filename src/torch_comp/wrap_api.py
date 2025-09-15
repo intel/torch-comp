@@ -5,7 +5,7 @@ import torch  # noqa:F401
 
 class WrapAPI:
     @classmethod
-    def wrap_api_to(cls, api):
+    def wrap_api_to(cls, api):  # noqa: C901
         @wraps(api)
         def new_api(*args, **kwargs):
             for arg in args:
@@ -32,7 +32,7 @@ class WrapAPI:
             elif (
                 device is not None
                 and "device" in kwargs
-                and type(kwargs["device"]) == int
+                and isinstance(kwargs["device"], int)
             ):
                 # handle the tensor.cuda(device=0) to tensor.to(device='xpu:0')
                 kwargs["device"] = "xpu:" + str(kwargs["device"])
@@ -40,7 +40,7 @@ class WrapAPI:
                 if str(args[1]).find("cuda") != -1:
                     new_device = str(args[1]).replace("cuda", "xpu")
                     new_args[1] = new_device
-                elif type(args[1]) == int:
+                elif isinstance(args[1], int):
                     new_device = "xpu:" + str(args[1])
                     new_args[1] = new_device
                 elif args[1] is None and "pin_memory" in str(api):
@@ -61,18 +61,15 @@ class WrapAPI:
             args_len = len(args)
             new_args = list(args)
             if backend is not None and backend == "nccl":
-                import oneccl_bindings_for_pytorch  # noqa:F401
 
-                kwargs["backend"] = "ccl"
+                kwargs["backend"] = "xccl"
             elif (
                 backend is None
                 and args_len > 0
                 and isinstance(args[0], str)
                 and args[0] == "nccl"
             ):
-                import oneccl_bindings_for_pytorch  # noqa:F401
-
-                new_args[0] = "ccl"
+                new_args[0] = "xccl"
 
             if device is not None and str(device).find("cuda") != -1:
                 kwargs["device"] = str(device).replace("cuda", "xpu")
@@ -114,7 +111,8 @@ class WrapAPI:
         @wraps(api)
         def new_api(*args, **kwargs):
             print(
-                "Warning: This api is not supported by xpu and will automatically return false in any implementation."
+                "Warning: This api is not supported by xpu and  ",
+                "will automatically return false in any implementation. ",
             )
             return False
 
@@ -124,16 +122,17 @@ class WrapAPI:
     def wrap_api_ccl(cls, api):
         @wraps(api)
         def new_api(*args, **kwargs):
-            import oneccl_bindings_for_pytorch  # noqa:F401
 
-            return "ccl"
+            return "xccl"
 
         return new_api
 
     @classmethod
     def wrap_jit_script(cls, api):
         warnings.warn(
-            "torch compatible model cannot support jit, monkey patch jit.script to disable it."
+            "torch compatible model cannot support jit, "
+            "monkey patch jit.script to disable it.",
+            stacklevel=2,
         )
 
         @wraps(api)

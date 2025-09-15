@@ -2,7 +2,7 @@ import os
 import sys
 import torch
 import functools
-from .fake_module import common, nccl
+from .fake_module import nccl
 from collections import namedtuple
 from ruamel.yaml import YAML
 from .wrap_api import WrapAPI
@@ -44,7 +44,7 @@ def get_yaml_list(file_path: str):
     )
 
 
-def get_api_info(dist_backend):
+def get_api_info(dist_backend):  # noqa:C901
     api_map = namedtuple("api_entry", "api_mod api_name api_wrap")
 
     (
@@ -60,13 +60,13 @@ def get_api_info(dist_backend):
 
     torch_api_map_list = []
     api_list_supported = (
-        to_list
-        + create_tensor_list
-        + data_loader_list
-        + ddp_list
-        + pass_list
-        + ccl_list
-        + failure_list
+        to_list  # noqa: W503
+        + create_tensor_list  # noqa: W503
+        + data_loader_list  # noqa: W503
+        + ddp_list  # noqa: W503
+        + pass_list  # noqa: W503
+        + ccl_list  # noqa: W503
+        + failure_list  # noqa: W503
     )
     api_list_unsupported = create_tensor_unsupported_list
 
@@ -149,7 +149,8 @@ class fake_device(metaclass=device_meta_class):
                 return pre_device_class("meta", device_item.index)
             else:
                 raise RuntimeError(
-                    "[Compatible mode] Met unexpected device type when creating new device object",
+                    "[Compatible mode] Met unexpected device type when ",
+                    "creating new device object",
                     device_item.type,
                 )
 
@@ -176,18 +177,20 @@ class fake_device(metaclass=device_meta_class):
     def __reduce__(self):
         return (self.__class__, (self.type, self.index))
 
+
 def apply_patch(module_name, func_name, target_func):
     original_module = sys.modules[module_name]
     original_get_gpu_type = getattr(original_module, func_name)
     original_module.get_gpu_type = target_func
 
-    for mod_name, mod in list(sys.modules.items()):
+    for _mod_name, mod in list(sys.modules.items()):
         if mod is not None and hasattr(mod, func_name):
             if getattr(mod, func_name) == original_get_gpu_type:
                 setattr(mod, func_name, target_func)
 
 
-# here is corner case for tensor.cuda(), it will call .to method without device args()
+# here is corner case for tensor.cuda(),
+# it will call .to method without device args()
 def fake_cuda(tensor_input, index=-1, non_blocking=None):
     if isinstance(index, str):
         index = index.replace("cuda", "xpu")
@@ -204,16 +207,20 @@ def fake_cuda(tensor_input, index=-1, non_blocking=None):
 def is_cuda(input_args):
     return input_args.is_xpu
 
+
 class WrapHelper:
     def __init__(
-        self, target_device="xpu", dist_backend="ccl", compile_backend="inductor"
+        self,
+        target_device="xpu",
+        dist_backend="ccl",
+        compile_backend="inductor",
     ):
         self.torch_api_map = set()
         self.target_device = target_device
         self.dist_backend = dist_backend
         self.compile_backend = compile_backend
 
-    def convert_api(self):
+    def convert_api(self):  # noqa:C901
         if self.target_device == "xpu":
             torch_api_map_list = get_api_info(self.dist_backend)
             for item in torch_api_map_list:
@@ -221,7 +228,8 @@ class WrapHelper:
             for item in self.torch_api_map:
                 api = get_attr(item.api_mod, item.api_name)
 
-                # handle the interface for torch.Tensor.cuda and torch.nn.Module.cuda
+                # handle the interface for torch.Tensor.cuda
+                # and torch.nn.Module.cuda
                 if item.api_name == "cuda":
                     api = get_attr(item.api_mod, "to")
 
@@ -231,7 +239,8 @@ class WrapHelper:
             # disable torch.jit.script for cannot support
             set_attr(torch.jit, "script", WrapAPI.wrap_jit_script(torch.jit.script))
 
-            # fake for torch.cuda.amp.common for it cannot be found in torch.xpu
+            # fake for torch.cuda.amp.common for
+            # it cannot be found in torch.xpu
             set_attr(torch.cuda, "nccl", nccl)
             # import pdb;pdb.set_trace()
             # set_attr(torch.cuda.amp, "common", common)
@@ -270,7 +279,8 @@ class WrapHelper:
             def __enter__(self):
                 self.i.__enter__()
 
-            def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):  # type: ignore[override]
+            # type: ignore[override]
+            def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any):
                 self.i.__exit__(exc_type, exc_val, exc_tb)
 
             def __call__(self, func):
@@ -297,7 +307,7 @@ class WrapHelper:
                 if "XPUDriver" == active.__name__:
                     return actives[idx]()
             raise RuntimeError(
-                "Could not found triton for xpu, pls install triton for XPU"
+                "Could not found triton for xpu, " "pls install triton for XPU"
             )
 
         def avoid_device_init(self) -> bool:
@@ -306,7 +316,7 @@ class WrapHelper:
 
             return not (
                 torch.cuda.is_available()
-                or (hasattr(torch, "hpu") and torch.hpu.is_available())
+                or (hasattr(torch, "hpu") and torch.hpu.is_available())  # noqa: W503
             )
 
         torch._subclasses.fake_tensor.FakeTensorMode.avoid_device_init = (
@@ -316,7 +326,8 @@ class WrapHelper:
         def set_driver_to_gpu():
             driver = triton.runtime.driver
             for name, backend in triton.backends.backends.items():
-                # TODO: here should abstract 'intel' to a device name if we will support other device
+                # TODO: here should abstract 'intel'
+                # to a device name if we will support other device
                 if backend.driver.is_active() and name != "cpu" and "intel" == name:
                     if isinstance(driver.active, backend.driver):
                         # Don't re-initialize backend if it is already active
@@ -325,16 +336,21 @@ class WrapHelper:
                     return
             raise RuntimeError("Could not find an active GPU backend")
 
-        # quiet ugly but has no choice to init the defaultConfig driver only with xpu
+        # quiet ugly but has no choice to init
+        # the defaultConfig driver only with xpu
         triton.runtime.driver.default.__init__(xpu_create_driver)
         # apply_patch("torch._inductor.utils", "get_gpu_type", fake_get_gpu_type)
         # apply_patch("torch.utils._triton", "has_triton_tma", has_triton_tma)
-        #apply_patch(
+        # apply_patch(
         #    "torch._inductor.runtime.triton_helpers",
         #    "set_driver_to_gpu",
-         #   set_driver_to_gpu,
-        #)
+        #   set_driver_to_gpu,
+        # )
 
+        def get_device_capability():
+            return (8, 6)
+
+        set_attr(torch.xpu, "get_device_capability", get_device_capability)
         set_attr(torch.Tensor, "cuda", fake_cuda)
         set_attr(torch.nn.Module, "cuda", fake_cuda)
         set_attr(torch.Tensor, "is_cuda", is_cuda)
@@ -354,25 +370,26 @@ class WrapHelper:
                 device_property.gpu_subslice_count
             )
 
-
             torch.device = fake_device
-            # TODO: major, minor. Major means the arch, minor means the incremental imporvement
+            # TODO: major, minor. Major means the arch,
+            # minor means the incremental imporvement
 
     def convert_module(self):
         def replace_backend(target_backend, replace_backend, name):
             if name.startswith(target_backend):
 
-                migrate_name = replace_backend + name[len(target_backend) :]
+                suffix = name[len(target_backend):]
+                migrate_name = replace_backend + suffix
                 if migrate_name in sys.modules.keys():
                     sys.modules[name] = sys.modules[migrate_name]
 
         if self.target_device == "xpu":
-            for name, mod in sys.modules.items():
-                replace_backend("torch.cuda", "torch.xpu", name)
+            for _name, _mod in sys.modules.items():
+                replace_backend("torch.cuda", "torch.xpu", _name)
                 replace_backend(
                     "torch.backends.cuda",
                     "intel_extension_for_pytorch.backends.xpu",
-                    name,
+                    _name,
                 )
 
             torch.cuda = sys.modules["torch.cuda"]
@@ -384,7 +401,8 @@ def compatible_mode(
 ):
     helper = WrapHelper(target_device, dist_backend, compile_backend)
 
-    # convert torch function outside of module [torch.cuda, torch.backends.cuda]
+    # convert torch function outside of module
+    # [torch.cuda, torch.backends.cuda]
     helper.convert_module()
     # convert torch apis using device or set "cuda" device as default device
     helper.convert_var()

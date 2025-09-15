@@ -1,8 +1,8 @@
 import torch
 from torch.testing._internal.common_utils import TestCase
 
-import intel_extension_for_pytorch as ipex  # noqa
-ipex.compatible_mode()
+import torch_comp
+torch_comp.compatible_mode()
 
 cuda_device = torch.device("cuda")
 

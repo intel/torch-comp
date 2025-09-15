@@ -1,6 +1,6 @@
-import compatible_mode
-
+import os
 import torch
+from PIL import Image
 from torchvision import models, transforms
 from torchvision.models import get_model_builder, list_models
 
@@ -95,6 +95,7 @@ _model_params = {
     "googlenet": {"init_weights": True},
 }
 
+
 def _get_image(input_shape, real_image, device, dtype=None):
     """This routine loads a real or random image based on `real_image` argument.
     Currently, the real image is utilized for the following list of models:
@@ -107,12 +108,16 @@ def _get_image(input_shape, real_image, device, dtype=None):
     - `maskrcnn_resnet50_fpn`,
     - `maskrcnn_resnet50_fpn_v2`,
     in `test_classification_model` and `test_detection_model`.
-    To do so, a keyword argument `real_image` was added to the abovelisted models in `_model_params`
+    To do so, a keyword argument `real_image` was added
+    to the abovelisted models in `_model_params`
     """
     if real_image:
         # TODO: Maybe unify file discovery logic with test_image.py
         GRACE_HOPPER = os.path.join(
-            os.path.dirname(os.path.abspath(__file__)), "assets", "encode_jpeg", "grace_hopper_517x606.jpg"
+            os.path.dirname(os.path.abspath(__file__)),
+            "assets",
+            "encode_jpeg",
+            "grace_hopper_517x606.jpg",
         )
 
         img = Image.open(GRACE_HOPPER)
@@ -128,12 +133,13 @@ def _get_image(input_shape, real_image, device, dtype=None):
         assert tuple(image.size()) == input_shape
         return image.to(device=device, dtype=dtype)
 
-    # RNG always on CPU, to ensure x in cuda tests is bitwise identical to x in cpu tests
+    # RNG always on CPU, to ensure x in cuda tests
+    # is bitwise identical to x in cpu tests
     return torch.rand(input_shape).to(device=device, dtype=dtype)
+
 
 def list_model_fns(module):
     return [get_model_builder(name) for name in list_models(module)]
-
 
 
 def _test_classification_model_eval(model_fn):
@@ -143,7 +149,7 @@ def _test_classification_model_eval(model_fn):
     }
     model_name = model_fn.__name__
     kwargs = {**defaults, **_model_params.get(model_name, {})}
-    num_classes = kwargs.get("num_classes")
+    num_classes = kwargs.get("num_classes")  # noqa: F841
     input_shape = kwargs.pop("input_shape")
     real_image = kwargs.pop("real_image", False)
 
@@ -154,13 +160,13 @@ def _test_classification_model_eval(model_fn):
 
     print("Testing model:{} args: {}, result:{}".format(model_name, kwargs, out))
 
+
 def test_classification_model_eval():
     for model in list_model_fns(models):
         try:
             _test_classification_model_eval(model)
         except Exception as e:
             print("model_name: {}, Exception :{}".format(model.__name__, e))
-
 
 
 def _test_detection_model_eval(model_fn):
@@ -196,7 +202,11 @@ def _test_quantized_classification_model(model_fn):
     model.eval()
     x = torch.rand(input_shape)
     out = model(x)
-    print("Testing quantized_classification model:{} args: {}, result:{}".format(model_name, kwargs, out))
+    print(
+        "Testing quantized_classification model:{} args: {}, result:{}".format(
+            model_name, kwargs, out
+        )
+    )
 
 
 def test_quantized_classification_model():
@@ -205,8 +215,6 @@ def test_quantized_classification_model():
             _test_quantized_classification_model(model)
         except Exception as e:
             print("model_name: {}, Exception :{}".format(model.__name__, e))
-        
-        
 
 
 def _test_segmentation_model_eval(model_fn):
@@ -225,7 +233,11 @@ def _test_segmentation_model_eval(model_fn):
     x = torch.rand(input_shape).to(device=dev)
 
     out = model(x)
-    print("Testing segmentation_model model:{} args: {}, result:{}".format(model_name, kwargs, out))
+    print(
+        "Testing segmentation_model model:{} args: {}, result:{}".format(
+            model_name, kwargs, out
+        )
+    )
 
 
 def test_segmentation_model_eval():
@@ -234,7 +246,6 @@ def test_segmentation_model_eval():
             _test_segmentation_model_eval(model)
         except Exception as e:
             print("model_name: {}, Exception :{}".format(model.__name__, e))
-        
 
 
 def _test_video_model_eval(model_fn):
@@ -245,12 +256,13 @@ def _test_video_model_eval(model_fn):
     model_name = model_fn.__name__
 
     kwargs = {**defaults, **_model_params.get(model_name, {})}
-    num_classes = kwargs.get("num_classes")
+    num_classes = kwargs.get("num_classes")  # noqa: F841
     input_shape = kwargs.pop("input_shape")
     # test both basicblock and Bottleneck
     model = model_fn(**kwargs)
     model.eval().to(device=dev)
-    # RNG always on CPU, to ensure x in cuda tests is bitwise identical to x in cpu tests
+    # RNG always on CPU, to ensure x in cuda
+    # tests is bitwise identical to x in cpu tests
     x = torch.rand(input_shape).to(device=dev)
     out = model(x)
     print("Testing video model:{} args: {}, result:{}".format(model_name, kwargs, out))
@@ -262,7 +274,6 @@ def test_video_model_eval():
             _test_video_model_eval(model)
         except Exception as e:
             print("model_name: {}, Exception :{}".format(model.__name__, e))
-        
 
 
 def _test_raft_eval(model_fn):
@@ -300,4 +311,3 @@ if __name__ == "__main__":
     test_segmentation_model_eval()
     test_video_model_eval()
     test_raft_eval()
-    

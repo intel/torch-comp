@@ -1,0 +1,5 @@
+[flake8]
+ignore = E501,E265,C901,W503,C419
+max-line-length = 120
+max-complexity = 10
+exclude = [".venv", "__pycache__", "build", "dist"]

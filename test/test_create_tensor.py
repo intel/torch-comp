@@ -1,9 +1,8 @@
 import torch
-import torch.nn as nn
 from torch.testing._internal.common_utils import TestCase
 
-import intel_extension_for_pytorch as ipex  # noqa
-ipex.compatible_mode()
+import torch_comp
+torch_comp.compatible_mode()
 
 cuda_device = torch.device("cuda")
 
@@ -143,6 +142,7 @@ class TestTorchMethod(TestCase):
 
     def test_randn(self):
         x = torch.randn(2, 3, device=torch.device("cuda"))
+        self.assertEqual(x.device.type, "xpu")
 
     def test_zeros_like(self):
         a = torch.rand(3, 4)

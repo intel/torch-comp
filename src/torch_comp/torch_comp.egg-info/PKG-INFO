@@ -1,3 +1,17 @@
+Metadata-Version: 2.4
+Name: torch_comp
+Version: 0.1.0
+Summary: Tools for PyTorch compatibility with Intel XPU support
+Author-email: Lei zhenyuan <zhenyuan.lei@intel.com>
+License: MIT
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: torch
+Requires-Dist: pytest
+Requires-Dist: ruamel.yaml
+Dynamic: license-file
+
 Tool was select by PyTorch China Day Poster Session
 https://static.sched.com/hosted_files/pytorchdaychina2025/c0/ETS_PyTorchDay25_China_PosterTemplate_60_84.pptx.pdf?_gl=1*jrodkq*_gcl_au*MjEwNzU3MjI2NS4xNzQ4MjQzMjg3*FPAU*MjEwNzU3MjI2NS4xNzQ4MjQzMjg3
 
@@ -9,21 +23,20 @@ https://static.sched.com/hosted_files/pytorchdaychina2025/c0/ETS_PyTorchDay25_Ch
 ```python
 def compatible_mode(target_device="xpu", dist_backend="ccl", compile_backend="inductor"):
 ```
-* target_device: target device where should be converted from CUDA, currently only support Intel XPU device type.
+* target_device: target device where should be converted from CUDA, currently only support XPU device type within IPEX.
 * dist_backend: target distribution backend where should be adopted on the target device, currently only support ccl backend
 * compile_backend: target backend for torch.compile path, default is inductor
 
-# install
-pip install .
-
-# Usage
+# Usage 
 * Only single line is needed to add into model script, as following,
 ```python
 import torch
-import torch_comp;torch_comp.compatible_mode(...)
+import intel_extension_for_pytorch as ipex
+ 
+ipex.compatible_mode(...)
 ```
-* Please be noticed, the torch_comp.compatible_mode(...) must be invoked
+* Please be noticed, the ipex.compatible_mode(...) must be invoked 
     - at the very beginning of the workload.
     - only once on the global scale of the workload.
-    - immediately after import the torch and torch_comp.
+    - immediately after import the torch and IPEX.
 * With above, run model script as usual without other changes in model script. The workload will run on XPU device along with original CUDA path.

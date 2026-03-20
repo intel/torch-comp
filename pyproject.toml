@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "torch_comp"  # 项目名称（PyPI 发布标识）
+version = "0.1.0"           # 语义化版本号（如 1.0.0）
+description = "Tools for PyTorch compatibility with Intel XPU support"
+authors = [
+    { name = "Lei zhenyuan", email = "zhenyuan.lei@intel.com" }
+]
+license = { text = "MIT" }   # 许可证类型（Apache-2.0、BSD-3 等）
+readme = "README.md"         # 项目文档文件
+requires-python = ">=3.8"    # Python 版本兼容性[3,9](@ref)
+
+# 主依赖（安装时自动安装）
+dependencies = [
+    "torch",
+    "pytest",
+    "ruamel.yaml",
+    "pre-commit",
+    "flake8"
+]
+
+
+[flake8]
+ignore = ["E501", "E265", "C901"]
+max-line-length = 120
+max-complexity = 10
+exclude = [".venv", "__pycache__", "build", "dist"]

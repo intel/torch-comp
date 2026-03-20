@@ -1,0 +1,75 @@
+# 排除构建目录
+build/
+dist/
+*.egg-info/
+
+# 排除缓存文件
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+
+# 排除开发环境文件
+venv/
+.env/
+*.env
+env/
+.venv/
+.env*/ 
+
+# 排除IDE文件
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.sublime-*
+.DS_Store
+
+# 排除测试报告
+.coverage
+htmlcov/
+*.log
+
+# 排除文档构建
+docs/_build/
+
+# 排除安装包
+*.whl
+*.tar.gz
+*.egg
+
+# 排除Jupyter临时文件
+.ipynb_checkpoints/
+
+# 排除数据集和模型
+data/
+models/
+weights/
+
+# 排除操作系统文件
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+
+# 排除用户上传文件
+uploads/
+
+# 排除媒体文件
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.mp4
+*.mov
+*.wav
+*.mp3
+
+# 排除编译后的扩展文件
+*.so
+*.dylib
+*.dll
